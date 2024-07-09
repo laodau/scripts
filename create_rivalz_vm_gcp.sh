@@ -1,8 +1,42 @@
 #!/bin/bash
 
-zones=(
-  "us-east5-a"
+# Define the regions array
+regions=(
+  "us-east5-c"
+  "us-east4-a"
+  "europe-west4-a"
+  "europe-west9-a"
 )
+
+# Function to get a random number between 1 and 2
+get_random_count() {
+  echo $(( RANDOM % 2 + 1 ))
+}
+
+# Function to shuffle and get a random subset
+get_random_subset() {
+  local array=("$@")
+  local count=$(get_random_count)
+  local new_array=()
+
+  # Shuffle array
+  for i in $(shuf -i 0-$((${#array[@]}-1)) -n ${#array[@]}); do
+    new_array+=("${array[$i]}")
+  done
+
+  # Select first $count elements
+  new_array=("${new_array[@]:0:$count}")
+
+  echo "${new_array[@]}"
+}
+
+# Get random subset and store in zones array
+zones=($(get_random_subset "${regions[@]}"))
+
+# Print the new zones array
+echo "Selected zones: ${zones[@]}"
+
+
 # Hàm sinh chuỗi ngẫu nhiên có độ dài 5 ký tự
 generate_random_string() {
   local random_string=$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 5 ; echo '')
