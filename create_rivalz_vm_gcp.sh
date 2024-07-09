@@ -6,17 +6,10 @@ regions=(
   "europe-west4-a"
   "europe-west9-a"
   "us-central1-a"
-  "us-central1-b"
-  "us-central1-c"
   "us-east1-b"
-  "us-east1-c"
   "us-east4-a"
   "europe-west1-a"
-  "europe-west1-b"
-  "europe-west1-c"
   "asia-east1-a"
-  "asia-east1-b"
-  "asia-east1-c"
 )
 
 # Function to get a random number between 1 and 2
