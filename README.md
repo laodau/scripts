@@ -1,7 +1,7 @@
 # Tổng hợp
 - Xóa tất cả các project và vô hiệu hóa billing của tất cả các project trong Google Cloud
   ```
-  curl -O https://raw.githubusercontent.com/laodau/scripts/main/init_rm_gpc && chmod u+x init_rm_gpc.sh && ./init_rm_gpc.sh
+  curl -O https://raw.githubusercontent.com/laodau/scripts/main/init_rm_gpc.sh && chmod u+x init_rm_gpc.sh && ./init_rm_gpc.sh
   ```
 - Khởi tạo 5VM Rivalz & cài đặt Windows 10 LTSC 2019
   ```
