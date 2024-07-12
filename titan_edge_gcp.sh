@@ -31,7 +31,7 @@ generate_valid_instance_name() {
   echo "prodvm-${random_number}"
 }
 
-startup_script_url="https://raw.githubusercontent.com/laodau/scripts/main/auto-titan-edge.sh"
+startup_script_url="https://raw.githubusercontent.com/laodau/scripts/main/auto_titan_edge.sh"
 # List of regions and regions where virtual machines need to be created
 zones=(
   "us-east4-a"
