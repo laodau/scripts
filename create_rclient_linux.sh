@@ -108,6 +108,7 @@ WantedBy=multi-user.target
 EOF
 
 # Step 8: Enable and start the service
+sudo systemctl daemon-reload
 sudo systemctl enable rivalz.service
 sudo systemctl start rivalz.service
 
