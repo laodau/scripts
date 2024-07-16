@@ -73,6 +73,7 @@ echo -e "${GREEN}Running rivalz run...${NC}"
 
 # Update Rivalz
 rivalz update-version
+sleep 20
 
 expect << EOF
 spawn rivalz run
