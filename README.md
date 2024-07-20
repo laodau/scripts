@@ -7,11 +7,11 @@
   ```
   curl -O https://raw.githubusercontent.com/laodau/scripts/main/rivalz_vm_gcp.sh && chmod u+x rivalz_vm_gcp.sh && ./rivalz_vm_gcp.sh
   ```
-- Chạy 12 VM auto install Titan Edge L2 trên Google Cloud
+- Chạy 6 VM auto install Titan Edge L2 trên Google Cloud
   ```
   curl -O https://raw.githubusercontent.com/laodau/scripts/main/titan_edge_gcp.sh && chmod u+x titan_edge_gcp.sh && ./titan_edge_gcp.sh
   ```
-- Chạy 12 VM auto install RClient - Rivalz
+- Chạy 6 VM auto install RClient - Rivalz
   ```
   curl -O https://raw.githubusercontent.com/laodau/scripts/main/rclient_gcp.sh && chmod u+x rclient_gcp.sh && ./rclient_gcp.sh
   ```
