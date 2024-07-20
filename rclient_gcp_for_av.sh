@@ -36,9 +36,6 @@ startup_script_url="https://raw.githubusercontent.com/laodau/scripts/main/create
 zones=(
   "us-east4-a"
   "us-east1-b"
-  "us-east5-a"
-  "us-south1-a"
-  "us-west1-a"
   "europe-west4-b"
 )
 # Kiểm tra sự tồn tại của tổ chức
@@ -152,7 +149,7 @@ create_vms(){
             --provisioning-model=STANDARD \
             --service-account="$service_account_email" \
             --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
-            --create-disk=auto-delete=yes,boot=yes,device-name="$instance_name",image=projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20240607,mode=rw,size=120,type=projects/"$project_id"/zones/"$zone"/diskTypes/pd-balanced \
+            --create-disk=auto-delete=yes,boot=yes,device-name="$instance_name",image=projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20240607,mode=rw,size=240,type=projects/"$project_id"/zones/"$zone"/diskTypes/pd-balanced \
             --no-shielded-secure-boot \
             --shielded-vtpm \
             --shielded-integrity-monitoring \
